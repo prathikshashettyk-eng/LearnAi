@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LearnAI — Campus Intelligence Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-primary: #13111a;
+    --bg-secondary: #1c1927;
+    --bg-tertiary: #0e0c14;
+    --bg-card: #1a1726;
+    --text-primary: #e8d5ff;
+    --text-secondary: #9b85c4;
+    --border: rgba(139,100,220,0.18);
+    --border-md: rgba(139,100,220,0.32);
+    --radius-md: 8px;
+    --radius-lg: 14px;
+    --purple: #a855f7;
+    --purple-light: #c084fc;
+    --purple-dark: #7c3aed;
+    --purple-dim: rgba(168,85,247,0.12);
+    --purple-glow: rgba(168,85,247,0.25);
+    --accent: #d8b4fe;
+    --teal: #14b8a6;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --green: #34d399;
+    --blue: #60a5fa;
+  }
+
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-tertiary); color: var(--text-primary); font-size: 14px; min-height: 100vh; }
+
+  /* ===== LOGIN PAGE ===== */
+  #login-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: radial-gradient(ellipse at 30% 40%, #2d1060 0%, #0e0c14 60%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-box {
+    background: var(--bg-card); border: 1px solid var(--border-md);
+    border-radius: 20px; padding: 2.5rem 2rem; width: 380px;
+    box-shadow: 0 0 80px rgba(168,85,247,0.2);
+    animation: fadeUp 0.5s ease;
+  }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(24px); } to { opacity:1; transform: translateY(0); } }
+  .login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 1.75rem; justify-content: center; }
+  .login-icon { width: 44px; height: 44px; background: linear-gradient(135deg, var(--purple), var(--purple-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 20px var(--purple-glow); }
+  .login-brand { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+  .login-title { font-size: 18px; font-weight: 700; color: var(--text-primary); text-align: center; margin-bottom: 4px; }
+  .login-sub { font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 1.75rem; }
+  .login-tabs { display: flex; background: var(--bg-secondary); border-radius: 10px; padding: 4px; margin-bottom: 1.5rem; }
+  .login-tab { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: 500; border-radius: 8px; cursor: pointer; color: var(--text-secondary); transition: all 0.2s; }
+  .login-tab.active { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--border-md); }
+  .login-field { margin-bottom: 1rem; }
+  .login-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; display: block; }
+  .login-input {
+    width: 100%; padding: 10px 14px; background: var(--bg-secondary);
+    border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary);
+    font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+  .login-btn {
+    width: 100%; padding: 11px; background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+    border: none; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: opacity 0.2s; margin-top: 4px;
+    box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+  }
+  .login-btn:hover { opacity: 0.9; }
+  .login-demo { margin-top: 1rem; font-size: 12px; color: var(--text-secondary); text-align: center; line-height: 1.6; }
+  .login-demo code { background: var(--bg-secondary); padding: 1px 6px; border-radius: 4px; color: var(--purple-light); font-size: 11px; }
+  .login-err { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #f87171; font-size: 12px; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; display: none; text-align: center; }
+
+  /* ===== APP LAYOUT ===== */
+  #app { display: none; }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 235px; background: var(--bg-card); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; overflow-y: auto;
+  }
+  .logo { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); }
+  .logo-mark { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .logo-icon { width: 30px; height: 30px; background: linear-gradient(135deg, var(--purple), var(--purple-dark)); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; box-shadow: 0 0 12px var(--purple-glow); }
+  .logo-name { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+  .logo-sub { font-size: 10px; color: var(--text-secondary); margin-left: 40px; }
+  .user-pill { margin: 10px; background: var(--bg-secondary); border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); }
+  .user-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--purple-dark)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .user-info { flex: 1; }
+  .user-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+  .user-role-tag { font-size: 10px; color: var(--purple-light); }
+  .logout-btn { font-size: 11px; color: var(--text-secondary); cursor: pointer; padding: 3px 6px; border-radius: 5px; background: transparent; border: none; font-family: inherit; }
+  .logout-btn:hover { color: var(--red); }
+
+  .nav-section { padding: 10px 0 4px; }
+  .nav-label { font-size: 10px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; padding: 0 14px; margin-bottom: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px; cursor: pointer;
+    font-size: 13px; color: var(--text-secondary); transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--purple-dim); color: var(--text-primary); }
+  .nav-item.active { background: var(--purple-dim); color: var(--purple-light); font-weight: 600; border-right: 2px solid var(--purple); }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  /* ===== MAIN CONTENT ===== */
+  .main { margin-left: 235px; padding: 2rem; flex: 1; min-height: 100vh; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-header { margin-bottom: 1.5rem; }
+  .page-title { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+  .page-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* ===== CARDS ===== */
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
+  .metric-card { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 1rem; border: 1px solid var(--border); }
+  .metric-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .metric-value { font-size: 26px; font-weight: 700; color: var(--text-primary); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 0.75rem; }
+  .mb-1 { margin-bottom: 1rem; }
+
+  /* ===== BADGES ===== */
+  .badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+  .badge-high { background: rgba(248,113,113,0.15); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+  .badge-med { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-low { background: rgba(52,211,153,0.12); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
+  .badge-info { background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
+  .badge-purple { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--border-md); }
+  .badge-teal { background: rgba(20,184,166,0.12); color: #14b8a6; border: 1px solid rgba(20,184,166,0.3); }
+
+  /* ===== PROGRESS ===== */
+  .progress-bar { height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+  .fill-teal { background: var(--teal); }
+  .fill-red { background: var(--red); }
+  .fill-amber { background: var(--amber); }
+  .fill-blue { background: var(--blue); }
+  .fill-purple { background: var(--purple); }
+
+  /* ===== CONCEPT ROWS ===== */
+  .concept-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .concept-row:last-child { border-bottom: none; }
+  .concept-name { flex: 1.2; font-size: 13px; color: var(--text-primary); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .concept-bar-wrap { flex: 2; }
+  .concept-score { font-size: 13px; font-weight: 700; width: 38px; text-align: right; }
+
+  /* ===== ALERTS ===== */
+  .alert { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 1rem; font-size: 13px; }
+  .alert-red { background: rgba(248,113,113,0.1); color: #fca5a5; border: 1px solid rgba(248,113,113,0.25); }
+  .alert-amber { background: rgba(251,191,36,0.1); color: #fde68a; border: 1px solid rgba(251,191,36,0.25); }
+  .alert-teal { background: rgba(20,184,166,0.1); color: #99f6e4; border: 1px solid rgba(20,184,166,0.25); }
+  .alert-purple { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--border-md); }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+    font-size: 13px; font-weight: 500; border-radius: var(--radius-md); cursor: pointer;
+    border: 1px solid var(--border-md); background: transparent; color: var(--text-primary);
+    transition: background 0.15s, border-color 0.15s; font-family: inherit;
+  }
+  .btn:hover { background: var(--purple-dim); border-color: var(--purple); color: var(--purple-light); }
+  .btn-primary { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: #fff; border-color: transparent; }
+  .btn-primary:hover { opacity: 0.88; background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: #fff; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ===== INPUTS ===== */
+  input[type=text], input[type=number], input[type=password], input[type=email], textarea, select {
+    font-family: inherit; font-size: 13px; padding: 9px 12px; color: var(--text-primary);
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md);
+    outline: none; transition: border-color 0.15s; width: 100%;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(168,85,247,0.12); }
+
+  /* ===== PLAN ITEMS ===== */
+  .plan-item { display: flex; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+  .plan-item:last-child { border-bottom: none; }
+  .plan-time { font-size: 11px; color: var(--text-secondary); min-width: 90px; padding-top: 1px; }
+  .plan-text { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
+
+  /* ===== STRESS ===== */
+  .stress-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-md); background: var(--bg-secondary); margin-bottom: 6px; border: 1px solid var(--border); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .dot-red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .dot-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .stress-text { flex: 1; font-size: 13px; color: var(--text-primary); }
+  .stress-tag { font-size: 11px; color: var(--text-secondary); }
+
+  /* ===== TEACHERS ===== */
+  .teacher-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .teacher-row:last-child { border-bottom: none; }
+  .avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .av-teal { background: rgba(20,184,166,0.15); color: #14b8a6; border: 1px solid rgba(20,184,166,0.3); }
+  .av-purple { background: var(--purple-dim); color: var(--purple-light); border: 1px solid var(--border-md); }
+  .av-blue { background: rgba(96,165,250,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.3); }
+  .av-amber { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .teacher-info { flex: 1; }
+  .teacher-name { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+  .teacher-sub { font-size: 11px; color: var(--text-secondary); }
+  .teacher-slot { font-size: 11px; color: var(--teal); margin-top: 2px; }
+
+  /* ===== QUIZ ===== */
+  .quiz-opt {
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+    border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer;
+    margin-bottom: 8px; font-size: 13px; color: var(--text-primary); transition: all 0.18s;
+    background: var(--bg-secondary);
+  }
+  .quiz-opt:hover { border-color: var(--purple); background: var(--purple-dim); color: var(--text-primary); }
+  .quiz-opt.correct { border-color: var(--teal); background: rgba(20,184,166,0.12); color: #99f6e4; pointer-events: none; }
+  .quiz-opt.wrong { border-color: var(--red); background: rgba(248,113,113,0.1); color: #fca5a5; pointer-events: none; }
+  .quiz-opt.disabled { pointer-events: none; opacity: 0.6; }
+
+  /* ===== REAL WORLD ===== */
+  .rw-card {
+    border-left: 3px solid var(--purple); padding: 12px 14px;
+    background: var(--purple-dim); border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    margin-bottom: 10px; border: 1px solid var(--border); border-left: 3px solid var(--purple);
+  }
+  .rw-subject { font-size: 10px; font-weight: 700; color: var(--purple-light); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
+  .rw-concept { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .rw-explain { font-size: 13px; color: var(--text-secondary); line-height: 1.65; }
+
+  /* ===== MATERIALS ===== */
+  .material-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .material-row:last-child { border-bottom: none; }
+  .mat-icon { width: 32px; height: 32px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .mat-pdf { background: rgba(248,113,113,0.12); }
+  .mat-vid { background: var(--purple-dim); }
+  .mat-note { background: rgba(96,165,250,0.12); }
+  .mat-name { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+  .mat-meta { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+  .upload-zone {
+    border: 1px dashed var(--border-md); border-radius: var(--radius-lg); padding: 2rem;
+    text-align: center; cursor: pointer; color: var(--text-secondary); transition: background 0.15s;
+  }
+  .upload-zone:hover { background: var(--purple-dim); border-color: var(--purple); }
+  .upload-icon { font-size: 28px; margin-bottom: 8px; }
+
+  /* ===== TIMETABLE ===== */
+  .timetable { border-collapse: collapse; width: 100%; font-size: 12px; }
+  .timetable th { background: var(--bg-secondary); padding: 9px 10px; text-align: left; font-weight: 700; border: 1px solid var(--border); color: var(--purple-light); }
+  .timetable td { padding: 7px 8px; border: 1px solid var(--border); vertical-align: top; }
+  .tt-cell { background: rgba(96,165,250,0.12); color: #60a5fa; border-radius: 4px; padding: 4px 7px; font-size: 11px; display: inline-block; line-height: 1.4; border: 1px solid rgba(96,165,250,0.25); }
+  .tt-free { font-size: 11px; color: var(--text-secondary); }
+
+  /* ===== GPS ===== */
+  .campus-map { background: var(--bg-secondary); border-radius: var(--radius-lg); height: 200px; position: relative; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border); }
+  .building { position: absolute; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .you-dot { position: absolute; width: 14px; height: 14px; background: var(--red); border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 4px rgba(248,113,113,0.3), 0 0 12px var(--red); }
+
+  /* ===== TICKETS ===== */
+  .ticket { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .ticket:last-child { border-bottom: none; }
+  .ticket-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .ticket-id { font-size: 11px; color: var(--text-secondary); font-family: monospace; }
+  .ticket-title { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; }
+  .ticket-meta { font-size: 11px; color: var(--text-secondary); }
+
+  /* ===== ADMIN ROLES ===== */
+  .role-bar { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+  .role-btn { padding: 7px 16px; font-size: 12px; font-weight: 600; border-radius: var(--radius-md); cursor: pointer; border: 1px solid var(--border-md); background: transparent; color: var(--text-secondary); font-family: inherit; transition: all 0.15s; }
+  .role-btn.active { background: var(--purple-dim); color: var(--purple-light); border-color: var(--purple); }
+
+  /* ===== TIMELINE ===== */
+  .timeline { display: flex; align-items: center; overflow-x: auto; padding: 8px 0 12px; gap: 0; }
+  .tl-node { text-align: center; min-width: 110px; }
+  .tl-dot { width: 13px; height: 13px; border-radius: 50%; margin: 0 auto 5px; }
+  .tl-label { font-size: 11px; font-weight: 700; }
+  .tl-sub { font-size: 10px; color: var(--text-secondary); }
+  .tl-line { flex: 1; height: 1px; background: var(--border); min-width: 20px; }
+
+  /* ===== FEEDBACK BOX ===== */
+  .feedback-box { padding: 10px 14px; border-radius: var(--radius-md); font-size: 13px; margin: 10px 0; font-weight: 500; }
+  .fb-correct { background: rgba(20,184,166,0.12); color: #99f6e4; border: 1px solid rgba(20,184,166,0.3); }
+  .fb-wrong { background: rgba(248,113,113,0.1); color: #fca5a5; border: 1px solid rgba(248,113,113,0.3); }
+
+  /* ===== AI CHATBOT ===== */
+  .chat-fab {
+    position: fixed; bottom: 28px; right: 28px; width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; cursor: pointer; z-index: 500;
+    box-shadow: 0 4px 24px rgba(124,58,237,0.5);
+    transition: transform 0.2s; border: none;
+  }
+  .chat-fab:hover { transform: scale(1.08); }
+  .chat-fab.open { background: linear-gradient(135deg, #4b5563, #374151); }
+
+  .chat-window {
+    position: fixed; bottom: 96px; right: 28px; width: 370px; height: 520px;
+    background: var(--bg-card); border: 1px solid var(--border-md);
+    border-radius: 18px; display: flex; flex-direction: column;
+    z-index: 499; box-shadow: 0 16px 60px rgba(0,0,0,0.5);
+    overflow: hidden; display: none;
+  }
+  .chat-window.open { display: flex; animation: chatOpen 0.25s ease; }
+  @keyframes chatOpen { from { opacity:0; transform: scale(0.9) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } }
+
+  .chat-header {
+    background: linear-gradient(135deg, var(--purple-dark), #4c1d95);
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .chat-av { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .chat-name { font-size: 14px; font-weight: 700; color: #fff; }
+  .chat-status { font-size: 11px; color: rgba(255,255,255,0.7); }
+  .chat-close { margin-left: auto; background: rgba(255,255,255,0.15); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .chat-close:hover { background: rgba(255,255,255,0.25); }
+
+  .chat-msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .chat-msgs::-webkit-scrollbar { width: 4px; }
+  .chat-msgs::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+
+  .msg { max-width: 82%; display: flex; flex-direction: column; gap: 3px; }
+  .msg.bot { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+  .msg-bubble { padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.5; }
+  .msg.bot .msg-bubble { background: var(--bg-secondary); color: var(--text-primary); border-radius: 4px 14px 14px 14px; border: 1px solid var(--border); }
+  .msg.user .msg-bubble { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: #fff; border-radius: 14px 4px 14px 14px; }
+  .msg-time { font-size: 10px; color: var(--text-secondary); }
+  .msg.user .msg-time { text-align: right; }
+  .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+  .typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--purple); animation: typingPulse 1.2s ease-in-out infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingPulse { 0%,80%,100% { opacity:0.3; transform: scale(0.8); } 40% { opacity:1; transform: scale(1.1); } }
+
+  .chat-voice-bar {
+    padding: 6px 14px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px; background: var(--bg-secondary);
+  }
+  .voice-btn {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border-md);
+    background: var(--bg-card); cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: all 0.2s; color: var(--text-secondary);
+  }
+  .voice-btn:hover { border-color: var(--purple); color: var(--purple-light); }
+  .voice-btn.recording { background: rgba(248,113,113,0.15); border-color: var(--red); color: var(--red); animation: recordPulse 1s ease infinite; }
+  @keyframes recordPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.4); } 50% { box-shadow: 0 0 0 6px rgba(248,113,113,0); } }
+
+  .chat-input-wrap { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+  .chat-input { flex: 1; resize: none; padding: 8px 12px; min-height: 36px; max-height: 100px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; background: var(--bg-secondary); color: var(--text-primary); font-family: inherit; outline: none; }
+  .chat-input:focus { border-color: var(--purple); }
+  .chat-send { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--purple-dark)); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; align-self: flex-end; flex-shrink: 0; }
+  .chat-send:hover { opacity: 0.85; }
+
+  /* ===== UTIL ===== */
+  .flex { display: flex; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .align-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-12 { margin-bottom: 12px; }
+
+  /* ===== VOICE STATUS ===== */
+  .voice-status { font-size: 11px; color: var(--text-secondary); flex: 1; font-style: italic; }
+  .voice-status.active { color: var(--red); }
+
+  /* Scrollbar global */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-icon">✦</div>
+      <div class="login-brand">LearnAI</div>
+    </div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Campus Intelligence Platform</div>
+
+    <div class="login-tabs">
+      <div class="login-tab active" onclick="setLoginRole('student',this)">Student</div>
+      <div class="login-tab" onclick="setLoginRole('faculty',this)">Faculty</div>
+      <div class="login-tab" onclick="setLoginRole('admin',this)">Admin</div>
+    </div>
+
+    <div class="login-err" id="login-err">Invalid credentials. Try the demo accounts below.</div>
+
+    <div class="login-field">
+      <label class="login-label">Email</label>
+      <input class="login-input" type="email" id="login-email" placeholder="you@campus.edu" />
+    </div>
+    <div class="login-field">
+      <label class="login-label">Password</label>
+      <input class="login-input" type="password" id="login-pass" placeholder="••••••••" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign in →</button>
+
+    <div class="login-demo">
+      Demo accounts:<br>
+      Student: <code>student@campus.edu</code> / <code>student123</code><br>
+      Faculty: <code>faculty@campus.edu</code> / <code>faculty123</code><br>
+      Admin: <code>admin@campus.edu</code> / <code>admin123</code>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="app">
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-mark">
+        <div class="logo-icon">✦</div>
+        <div class="logo-name">LearnAI</div>
+      </div>
+      <div class="logo-sub">Campus Intelligence Platform</div>
+    </div>
+
+    <div class="user-pill">
+      <div class="user-av" id="sidebar-av">A</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebar-name">Ananya</div>
+        <div class="user-role-tag" id="sidebar-role">Student</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">✕</button>
+    </div>
+
+    <div id="nav-student" style="display:none;">
+      <div class="nav-section">
+        <div class="nav-label">Student</div>
+        <div class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">⊞</span> Dashboard</div>
+        <div class="nav-item" onclick="nav('skillgap')"><span class="nav-icon">◎</span> Skill Gap Detector</div>
+        <div class="nav-item" onclick="nav('stress')"><span class="nav-icon">◉</span> Stress Radar</div>
+        <div class="nav-item" onclick="nav('realworld')"><span class="nav-icon">◇</span> Real-World Converter</div>
+        <div class="nav-item" onclick="nav('quiz')"><span class="nav-icon">◑</span> Smart Quiz</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Resources</div>
+        <div class="nav-item" onclick="nav('materials')"><span class="nav-icon">◫</span> Materials Library</div>
+        <div class="nav-item" onclick="nav('teachers')"><span class="nav-icon">◈</span> Teacher Availability</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Campus</div>
+        <div class="nav-item" onclick="nav('campus')"><span class="nav-icon">◍</span> Campus Tools</div>
+      </div>
+    </div>
+
+    <div id="nav-faculty" style="display:none;">
+      <div class="nav-section">
+        <div class="nav-label">Faculty</div>
+        <div class="nav-item active" onclick="nav('faculty-dash')"><span class="nav-icon">⊞</span> Dashboard</div>
+        <div class="nav-item" onclick="nav('materials')"><span class="nav-icon">◫</span> Upload Materials</div>
+        <div class="nav-item" onclick="nav('timetable')"><span class="nav-icon">▦</span> Timetable</div>
+        <div class="nav-item" onclick="nav('teachers')"><span class="nav-icon">◈</span> Availability</div>
+        <div class="nav-item" onclick="nav('campus')"><span class="nav-icon">◍</span> Campus Tools</div>
+      </div>
+    </div>
+
+    <div id="nav-admin" style="display:none;">
+      <div class="nav-section">
+        <div class="nav-label">Admin</div>
+        <div class="nav-item active" onclick="nav('admin')"><span class="nav-icon">▨</span> Analytics Dashboard</div>
+        <div class="nav-item" onclick="nav('timetable')"><span class="nav-icon">▦</span> Timetable Generator</div>
+        <div class="nav-item" onclick="nav('campus')"><span class="nav-icon">◍</span> Campus Tools</div>
+        <div class="nav-item" onclick="nav('materials')"><span class="nav-icon">◫</span> Materials Library</div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ======== STUDENT DASHBOARD ======== -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">Good morning, Ananya 👋</div>
+        <div class="page-sub">Here's your learning snapshot for today — Monday, 5 May 2025</div>
+      </div>
+      <div class="alert alert-red">⚠️ <strong>High stress detected</strong> — DBMS test tomorrow + 3 weak concepts unresolved. Your study plan is ready below.</div>
+      <div class="grid-4 mb-1">
+        <div class="metric-card"><div class="metric-label">Overall score</div><div class="metric-value">72%</div></div>
+        <div class="metric-card"><div class="metric-label">Weak concepts</div><div class="metric-value" style="color:var(--red)">3</div></div>
+        <div class="metric-card"><div class="metric-label">Stress level</div><div class="metric-value" style="color:var(--red)">High</div></div>
+        <div class="metric-card"><div class="metric-label">Attendance</div><div class="metric-value" style="color:var(--teal)">87%</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title">Subject performance</div>
+          <div class="concept-row"><div class="concept-name">DBMS</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:68%"></div></div></div><div class="concept-score" style="color:var(--amber)">68%</div></div>
+          <div class="concept-row"><div class="concept-name">Mathematics</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:81%"></div></div></div><div class="concept-score" style="color:var(--teal)">81%</div></div>
+          <div class="concept-row"><div class="concept-name">Physics</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:76%"></div></div></div><div class="concept-score" style="color:var(--teal)">76%</div></div>
+          <div class="concept-row"><div class="concept-name">English</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:88%"></div></div></div><div class="concept-score" style="color:var(--teal)">88%</div></div>
+          <div class="concept-row"><div class="concept-name">OS</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-red" style="width:59%"></div></div></div><div class="concept-score" style="color:var(--red)">59%</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Today's AI recovery plan</div>
+          <div class="plan-item"><div class="plan-time">6:00 – 6:25 PM</div><div class="plan-text">DBMS Normalization — read Ms. Sharma's notes</div></div>
+          <div class="plan-item"><div class="plan-time">6:25 – 6:45 PM</div><div class="plan-text">Practice 5 mock questions on Normalization</div></div>
+          <div class="plan-item"><div class="plan-time">6:45 – 7:05 PM</div><div class="plan-text">OS Process Scheduling — quick revision</div></div>
+          <div class="plan-item"><div class="plan-time">7:05 – 7:15 PM</div><div class="plan-text">Short break + retake Normalization quiz</div></div>
+          <div class="plan-item"><div class="plan-time">7:15 – 7:30 PM</div><div class="plan-text">Check in with Ms. Sharma at doubt slot</div></div>
+          <div class="mt-16" style="display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="nav('quiz')">Start smart quiz →</button>
+            <button class="btn" onclick="nav('skillgap')">View skill gaps</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== FACULTY DASHBOARD ======== -->
+    <div class="page" id="page-faculty-dash">
+      <div class="page-header">
+        <div class="page-title">Faculty Dashboard 👩‍🏫</div>
+        <div class="page-sub">Class overview and student performance insights</div>
+      </div>
+      <div class="alert alert-purple">📢 <strong>3 students</strong> have weak concepts in DBMS Normalization — consider a revision session.</div>
+      <div class="grid-4 mb-1">
+        <div class="metric-card"><div class="metric-label">My students</div><div class="metric-value">86</div></div>
+        <div class="metric-card"><div class="metric-label">Avg score</div><div class="metric-value" style="color:var(--amber)">71%</div></div>
+        <div class="metric-card"><div class="metric-label">Weak students</div><div class="metric-value" style="color:var(--red)">14</div></div>
+        <div class="metric-card"><div class="metric-label">Uploads</div><div class="metric-value" style="color:var(--teal)">12</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title">Class concept gaps (DBMS)</div>
+          <div class="concept-row"><div class="concept-name">Normalization</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-red" style="width:44%"></div></div></div><div class="concept-score" style="color:var(--red)">44%</div></div>
+          <div class="concept-row"><div class="concept-name">SQL Queries</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:61%"></div></div></div><div class="concept-score" style="color:var(--amber)">61%</div></div>
+          <div class="concept-row"><div class="concept-name">ER Model</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:75%"></div></div></div><div class="concept-score" style="color:var(--teal)">75%</div></div>
+          <div class="concept-row"><div class="concept-name">Transactions</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:70%"></div></div></div><div class="concept-score" style="color:var(--teal)">70%</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Students needing attention</div>
+          <div class="teacher-row" style="border-bottom:1px solid var(--border)">
+            <div class="avatar av-purple">AK</div>
+            <div class="teacher-info"><div class="teacher-name">Ananya Krishnan</div><div class="teacher-sub">DBMS: 42% · OS: 55%</div></div>
+            <span class="badge badge-high">High risk</span>
+          </div>
+          <div class="teacher-row" style="border-bottom:1px solid var(--border)">
+            <div class="avatar av-amber">RV</div>
+            <div class="teacher-info"><div class="teacher-name">Rahul Verma</div><div class="teacher-sub">DBMS: 58% · Maths: 61%</div></div>
+            <span class="badge badge-med">Moderate</span>
+          </div>
+          <div class="teacher-row">
+            <div class="avatar av-teal">PS</div>
+            <div class="teacher-info"><div class="teacher-name">Priya Sharma</div><div class="teacher-sub">All subjects 70%+</div></div>
+            <span class="badge badge-low">Good</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== SKILL GAP ======== -->
+    <div class="page" id="page-skillgap">
+      <div class="page-header">
+        <div class="page-title">Skill Gap Detector</div>
+        <div class="page-sub">Concept-level breakdown — not just total marks.</div>
+      </div>
+      <div class="card mb-1">
+        <div class="section-title">DBMS — concept breakdown <span class="badge badge-med" style="margin-left:8px">Total: 68%</span></div>
+        <div class="concept-row"><div class="concept-name">Normalization <span class="badge badge-high">Weak</span></div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-red" style="width:42%"></div></div></div><div class="concept-score" style="color:var(--red)">42%</div></div>
+        <div class="concept-row"><div class="concept-name">ER Model</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:75%"></div></div></div><div class="concept-score" style="color:var(--teal)">75%</div></div>
+        <div class="concept-row"><div class="concept-name">Keys & Constraints</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:82%"></div></div></div><div class="concept-score" style="color:var(--teal)">82%</div></div>
+        <div class="concept-row"><div class="concept-name">SQL Queries <span class="badge badge-med">Practice needed</span></div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:61%"></div></div></div><div class="concept-score" style="color:var(--amber)">61%</div></div>
+        <div class="concept-row"><div class="concept-name">Transactions</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:70%"></div></div></div><div class="concept-score" style="color:var(--teal)">70%</div></div>
+      </div>
+      <div class="card mb-1">
+        <div class="section-title">Operating Systems — concept breakdown <span class="badge badge-high" style="margin-left:8px">Total: 59%</span></div>
+        <div class="concept-row"><div class="concept-name">Process Scheduling <span class="badge badge-high">Weak</span></div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-red" style="width:48%"></div></div></div><div class="concept-score" style="color:var(--red)">48%</div></div>
+        <div class="concept-row"><div class="concept-name">Memory Management <span class="badge badge-high">Weak</span></div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-red" style="width:52%"></div></div></div><div class="concept-score" style="color:var(--red)">52%</div></div>
+        <div class="concept-row"><div class="concept-name">Deadlocks</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:65%"></div></div></div><div class="concept-score" style="color:var(--amber)">65%</div></div>
+        <div class="concept-row"><div class="concept-name">File Systems</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:72%"></div></div></div><div class="concept-score" style="color:var(--teal)">72%</div></div>
+      </div>
+      <div class="card">
+        <div class="section-title">AI Recovery plan for Normalization</div>
+        <div class="plan-item"><div class="plan-time">Step 1</div><div class="plan-text">Read the real-world library database analogy → Real-World Converter</div></div>
+        <div class="plan-item"><div class="plan-time">Step 2</div><div class="plan-text">Review Ms. Sharma's uploaded notes (PDF in Materials Library)</div></div>
+        <div class="plan-item"><div class="plan-time">Step 3</div><div class="plan-text">Attempt 5 targeted practice questions</div></div>
+        <div class="plan-item"><div class="plan-time">Step 4</div><div class="plan-text">Retake concept quiz — target 70%+</div></div>
+        <div class="mt-16" style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="nav('realworld')">See real-world explanation →</button>
+          <button class="btn" onclick="nav('quiz')">Take practice quiz →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== STRESS RADAR ======== -->
+    <div class="page" id="page-stress">
+      <div class="page-header">
+        <div class="page-title">Academic Stress Radar</div>
+        <div class="page-sub">Overload detected before burnout hits.</div>
+      </div>
+      <div class="grid-2 mb-1">
+        <div class="card">
+          <div class="section-title">Current stress factors</div>
+          <div class="stress-row"><div class="dot dot-red"></div><div class="stress-text">DBMS test tomorrow</div><div class="stress-tag">Critical</div></div>
+          <div class="stress-row"><div class="dot dot-amber"></div><div class="stress-text">Math assignment due in 3 days</div><div class="stress-tag">Moderate</div></div>
+          <div class="stress-row"><div class="dot dot-red"></div><div class="stress-text">3 weak concepts unresolved</div><div class="stress-tag">Critical</div></div>
+          <div class="stress-row"><div class="dot dot-amber"></div><div class="stress-text">OS midterm in 5 days</div><div class="stress-tag">Moderate</div></div>
+          <div class="stress-row"><div class="dot dot-green"></div><div class="stress-text">Physics — low risk this week</div><div class="stress-tag">Low</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Overall stress level</div>
+          <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:1rem;">
+            <div style="font-size:38px;font-weight:700;color:var(--red);">High</div>
+            <div style="font-size:13px;color:var(--text-secondary);line-height:1.5;">Multiple critical deadlines coincide with unresolved weak concepts.</div>
+          </div>
+          <div style="margin-bottom:6px;display:flex;justify-content:space-between;font-size:12px;color:var(--text-secondary)"><span>Stress load</span><span>78%</span></div>
+          <div class="progress-bar" style="height:10px;margin-bottom:1.25rem;"><div class="progress-fill fill-red" style="width:78%"></div></div>
+          <div class="section-title mb-8">Recommended actions</div>
+          <div class="plan-item"><div class="plan-time">Tonight</div><div class="plan-text">25-min focused DBMS revision — no random study</div></div>
+          <div class="plan-item"><div class="plan-time">Tomorrow AM</div><div class="plan-text">15-min mock quiz before the exam</div></div>
+          <div class="plan-item"><div class="plan-time">This week</div><div class="plan-text">Book a doubt session with Ms. Sharma</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Upcoming deadlines timeline</div>
+        <div class="timeline">
+          <div class="tl-node"><div class="tl-dot" style="background:var(--red);box-shadow:0 0 8px var(--red)"></div><div class="tl-label" style="color:var(--red)">DBMS Test</div><div class="tl-sub">Tomorrow</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-node"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-label" style="color:var(--amber)">Math Assignment</div><div class="tl-sub">3 days</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-node"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-label" style="color:var(--amber)">OS Midterm</div><div class="tl-sub">5 days</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-node"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-label" style="color:var(--green)">Physics Lab Report</div><div class="tl-sub">8 days</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== REAL WORLD ======== -->
+    <div class="page" id="page-realworld">
+      <div class="page-header">
+        <div class="page-title">Real-World Learning Converter</div>
+        <div class="page-sub">Theory explained through everyday life — because context makes concepts stick.</div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div class="rw-card"><div class="rw-subject">DBMS</div><div class="rw-concept">Database Normalization</div><div class="rw-explain">A library keeps student info, book details, and issue records in separate tables — when a student changes address, you update it once, not everywhere. That's 3NF: no data repetition.</div></div>
+          <div class="rw-card"><div class="rw-subject">Mathematics</div><div class="rw-concept">Quadratic Equations</div><div class="rw-explain">A ball thrown upward follows a curved path. Quadratics calculate its maximum height and when it lands. The same formula drives game physics and sports analytics.</div></div>
+          <div class="rw-card"><div class="rw-subject">Physics</div><div class="rw-concept">Newton's First Law — Inertia</div><div class="rw-explain">When a bus brakes suddenly, passengers lurch forward — they were in motion and want to stay that way. Seatbelts apply a force to stop you. Inertia is why stopping takes effort.</div></div>
+        </div>
+        <div>
+          <div class="rw-card"><div class="rw-subject">Operating Systems</div><div class="rw-concept">Process Scheduling</div><div class="rw-explain">A hospital triage system doesn't treat patients in arrival order — it prioritises by urgency. OS schedulers work the same: critical processes get CPU time first.</div></div>
+          <div class="rw-card"><div class="rw-subject">English</div><div class="rw-concept">Formal Report Writing</div><div class="rw-explain">A campus complaint form — problem, evidence, impact, recommendation — follows the same structure as any business report. You already know the format; formal writing just names the sections.</div></div>
+          <div class="rw-card"><div class="rw-subject">OS</div><div class="rw-concept">Memory Management — Paging</div><div class="rw-explain">A restaurant seats a party of 8 across two 4-person tables when no single large table is free. Paging does the same — splits large data into fixed frames across available RAM.</div></div>
+          <div class="card mt-12">
+            <div class="section-title mb-8">🤖 Ask AI for a custom explanation</div>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="rw-input" placeholder="Type a concept (e.g. Deadlock, SQL, Inertia)" style="flex:1;" />
+              <button class="btn btn-primary" onclick="generateRW()">Explain</button>
+            </div>
+            <div id="rw-result" class="rw-card mt-12" style="display:none;">
+              <div class="rw-subject" id="rw-sub"></div>
+              <div class="rw-concept" id="rw-title"></div>
+              <div class="rw-explain" id="rw-body">Loading AI explanation...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== QUIZ ======== -->
+    <div class="page" id="page-quiz">
+      <div class="page-header">
+        <div class="page-title">Smart Quiz</div>
+        <div class="page-sub">Targeted questions on your weakest concepts first.</div>
+      </div>
+      <div class="card" style="max-width:640px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+          <span class="badge badge-purple">DBMS — Normalization</span>
+          <span style="font-size:12px;color:var(--text-secondary);" id="q-counter">Question 1 of 5</span>
+        </div>
+
+        <!-- Progress bar for quiz -->
+        <div class="progress-bar" style="margin-bottom:1.25rem;">
+          <div class="progress-fill fill-purple" id="quiz-progress" style="width:20%"></div>
+        </div>
+
+        <div id="quiz-q-1">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">Which normal form eliminates partial dependencies?</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'1')"><span>A</span> First Normal Form (1NF)</div>
+          <div class="quiz-opt" onclick="selectOpt(this,true,'1')"><span>B</span> Second Normal Form (2NF)</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'1')"><span>C</span> Third Normal Form (3NF)</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'1')"><span>D</span> Boyce-Codd Normal Form (BCNF)</div>
+        </div>
+        <div id="quiz-q-2" style="display:none;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">A relation is in 3NF when it has no:</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'2')"><span>A</span> Multivalued attributes</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'2')"><span>B</span> Partial dependencies only</div>
+          <div class="quiz-opt" onclick="selectOpt(this,true,'2')"><span>C</span> Transitive dependencies</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'2')"><span>D</span> Foreign key references</div>
+        </div>
+        <div id="quiz-q-3" style="display:none;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">In a library database, which design violates 1NF?</div>
+          <div class="quiz-opt" onclick="selectOpt(this,true,'3')"><span>A</span> Storing multiple book names in a single cell</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'3')"><span>B</span> Separate tables for books and members</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'3')"><span>C</span> Using a primary key for each record</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'3')"><span>D</span> Linking issue records via foreign keys</div>
+        </div>
+        <div id="quiz-q-4" style="display:none;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">A candidate key is defined as:</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'4')"><span>A</span> Any attribute that can hold duplicate values</div>
+          <div class="quiz-opt" onclick="selectOpt(this,true,'4')"><span>B</span> A minimal set of attributes that uniquely identifies each tuple</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'4')"><span>C</span> An attribute that references another table</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'4')"><span>D</span> A composite attribute only</div>
+        </div>
+        <div id="quiz-q-5" style="display:none;">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:14px;">Decomposition in normalisation must always preserve:</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'5')"><span>A</span> Duplicate data for backup</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'5')"><span>B</span> Original table count</div>
+          <div class="quiz-opt" onclick="selectOpt(this,true,'5')"><span>C</span> Lossless-join and dependency preservation</div>
+          <div class="quiz-opt" onclick="selectOpt(this,false,'5')"><span>D</span> Maximum number of columns</div>
+        </div>
+
+        <div id="quiz-fb" style="display:none;" class="feedback-box"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;">
+          <div id="quiz-score-label" style="font-size:13px;color:var(--text-secondary);font-weight:600;"></div>
+          <button class="btn btn-primary" id="quiz-next" style="display:none;" onclick="nextQ()">Next question →</button>
+        </div>
+        <div id="quiz-done" style="display:none;margin-top:1rem;padding:1.25rem;background:var(--purple-dim);border-radius:var(--radius-md);border:1px solid var(--border-md);">
+          <div style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">Quiz complete! 🎉</div>
+          <div id="quiz-final" style="font-size:13px;color:var(--text-secondary);line-height:1.6;"></div>
+          <button class="btn btn-primary mt-12" onclick="restartQuiz()">Retake quiz</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== MATERIALS ======== -->
+    <div class="page" id="page-materials">
+      <div class="page-header">
+        <div class="page-title">Materials Library</div>
+        <div class="page-sub">Teacher-uploaded notes, student resources, and your own uploads.</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title">Teacher-uploaded materials</div>
+          <div class="material-row"><div class="mat-icon mat-pdf">📄</div><div style="flex:1"><div class="mat-name">DBMS Normalization — full notes</div><div class="mat-meta">Ms. Sharma · PDF · 2.4 MB · Today</div></div><button class="btn btn-sm">Download</button></div>
+          <div class="material-row"><div class="mat-icon mat-vid">▶</div><div style="flex:1"><div class="mat-name">OS Process Scheduling lecture</div><div class="mat-meta">Dr. Rajan · Video · 38 mins · Yesterday</div></div><button class="btn btn-sm">Watch</button></div>
+          <div class="material-row"><div class="mat-icon mat-note">📝</div><div style="flex:1"><div class="mat-name">Mathematics — Quadratic formula sheet</div><div class="mat-meta">Mr. Verma · Notes · 0.8 MB · 3 days ago</div></div><button class="btn btn-sm">Download</button></div>
+          <div class="material-row"><div class="mat-icon mat-pdf">📄</div><div style="flex:1"><div class="mat-name">Physics — Newton's Laws summary</div><div class="mat-meta">Ms. Priya · PDF · 1.1 MB · 4 days ago</div></div><button class="btn btn-sm">Download</button></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Upload your own materials</div>
+          <div class="upload-zone" onclick="fakeUpload()">
+            <div class="upload-icon">↑</div>
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:4px;">Drop files here or click to upload</div>
+            <div style="font-size:12px;">PDF, notes, images — max 20 MB</div>
+          </div>
+          <div id="upload-list" style="margin-top:12px;">
+            <div class="material-row"><div class="mat-icon mat-note">📝</div><div style="flex:1"><div class="mat-name">My DBMS revision notes.pdf</div><div class="mat-meta">You · 0.6 MB · Uploaded</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== TEACHERS ======== -->
+    <div class="page" id="page-teachers">
+      <div class="page-header">
+        <div class="page-title">Teacher Availability</div>
+        <div class="page-sub">Book a doubt session during free hours.</div>
+      </div>
+      <div class="card">
+        <div class="teacher-row"><div class="avatar av-teal">MS</div><div class="teacher-info"><div class="teacher-name">Ms. Sharma — DBMS</div><div class="teacher-sub">Office: Room 204</div><div class="teacher-slot">Free today 4:00–5:00 PM · Tomorrow 11:00–12:00 PM</div></div><button class="btn btn-primary btn-sm" onclick="bookSlot('Ms. Sharma','4:00 PM')">Book slot</button></div>
+        <div class="teacher-row"><div class="avatar av-purple">DR</div><div class="teacher-info"><div class="teacher-name">Dr. Rajan — Operating Systems</div><div class="teacher-sub">Office: Room 301</div><div class="teacher-slot">Free tomorrow 2:00–3:00 PM · Thu 10:00–11:00 AM</div></div><button class="btn btn-sm" onclick="bookSlot('Dr. Rajan','2:00 PM tomorrow')">Book slot</button></div>
+        <div class="teacher-row"><div class="avatar av-blue">MV</div><div class="teacher-info"><div class="teacher-name">Mr. Verma — Mathematics</div><div class="teacher-sub">Office: Room 105</div><div class="teacher-slot">Free today 5:30–6:30 PM</div></div><button class="btn btn-sm" onclick="bookSlot('Mr. Verma','5:30 PM')">Book slot</button></div>
+        <div class="teacher-row"><div class="avatar av-amber">SP</div><div class="teacher-info"><div class="teacher-name">Ms. Priya — Physics</div><div class="teacher-sub">Office: Room 203</div><div class="teacher-slot">Free Wed & Fri 3:00–4:00 PM</div></div><button class="btn btn-sm" onclick="bookSlot('Ms. Priya','3:00 PM Wednesday')">Book slot</button></div>
+      </div>
+    </div>
+
+    <!-- ======== TIMETABLE ======== -->
+    <div class="page" id="page-timetable">
+      <div class="page-header">
+        <div class="page-title">Timetable Generator</div>
+        <div class="page-sub">Auto-generate a conflict-free schedule from faculty inputs.</div>
+      </div>
+      <div class="card mb-1">
+        <div class="section-title">Inputs</div>
+        <div class="grid-3" style="gap:12px;margin-bottom:14px;">
+          <div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Total faculty</div><input type="number" value="8" id="tt-faculty" /></div>
+          <div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Classes per day</div><input type="number" value="6" id="tt-classes" /></div>
+          <div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Class duration (min)</div><input type="number" value="50" id="tt-dur" /></div>
+        </div>
+        <button class="btn btn-primary" onclick="genTimetable()">Generate timetable →</button>
+      </div>
+      <div class="card" id="tt-output">
+        <div class="section-title mb-12">Generated timetable — Semester 4</div>
+        <div style="overflow-x:auto;">
+          <table class="timetable">
+            <tr><th>Time</th><th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th></tr>
+            <tr><td>9:00</td><td><span class="tt-cell">DBMS — Ms. Sharma</span></td><td><span class="tt-cell">OS — Dr. Rajan</span></td><td><span class="tt-cell">Maths — Mr. Verma</span></td><td><span class="tt-cell">DBMS — Ms. Sharma</span></td><td><span class="tt-cell">Physics — Ms. Priya</span></td></tr>
+            <tr><td>9:55</td><td><span class="tt-cell">Maths — Mr. Verma</span></td><td><span class="tt-cell">Physics — Ms. Priya</span></td><td><span class="tt-cell">DBMS — Ms. Sharma</span></td><td><span class="tt-cell">OS — Dr. Rajan</span></td><td><span class="tt-cell">English — Ms. Nair</span></td></tr>
+            <tr><td>10:50</td><td><span class="tt-cell">Physics — Ms. Priya</span></td><td><span class="tt-cell">English — Ms. Nair</span></td><td><span class="tt-cell">OS — Dr. Rajan</span></td><td><span class="tt-cell">Maths — Mr. Verma</span></td><td><span class="tt-cell">DBMS — Ms. Sharma</span></td></tr>
+            <tr><td>11:45</td><td colspan="5" style="text-align:center;color:var(--text-secondary);font-size:12px;padding:10px;">☕ Lunch Break (45 min)</td></tr>
+            <tr><td>1:00</td><td><span class="tt-cell">English — Ms. Nair</span></td><td><span class="tt-cell">DBMS — Ms. Sharma</span></td><td><span class="tt-cell">Physics — Ms. Priya</span></td><td><span class="tt-cell">English — Ms. Nair</span></td><td><span class="tt-cell">OS — Dr. Rajan</span></td></tr>
+            <tr><td>1:55</td><td><span class="tt-cell">OS — Dr. Rajan</span></td><td><span class="tt-cell">Maths — Mr. Verma</span></td><td><span class="tt-cell">English — Ms. Nair</span></td><td><span class="tt-cell">Physics — Ms. Priya</span></td><td><span class="tt-cell">Maths — Mr. Verma</span></td></tr>
+            <tr><td>2:50</td><td><span class="tt-free">Free / Lab</span></td><td><span class="tt-free">Free / Lab</span></td><td><span class="tt-cell">DBMS Lab — Ms. Sharma</span></td><td><span class="tt-free">Free / Lab</span></td><td><span class="tt-cell">OS Lab — Dr. Rajan</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== CAMPUS TOOLS ======== -->
+    <div class="page" id="page-campus">
+      <div class="page-header">
+        <div class="page-title">Campus Tools</div>
+        <div class="page-sub">GPS check-in and campus problem reporter.</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title">GPS Campus Check-in</div>
+          <div class="campus-map">
+            <div class="building" style="width:90px;height:55px;background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);top:25px;left:30px;">Block A</div>
+            <div class="building" style="width:90px;height:55px;background:rgba(20,184,166,0.12);color:#14b8a6;border:1px solid rgba(20,184,166,0.3);top:25px;left:140px;">Library</div>
+            <div class="building" style="width:90px;height:55px;background:var(--purple-dim);color:var(--purple-light);border:1px solid var(--border-md);top:110px;left:85px;">Lab Block</div>
+            <div class="you-dot" style="top:122px;left:101px;"></div>
+            <div style="position:absolute;font-size:10px;color:var(--red);font-weight:700;top:140px;left:82px;">● You are here</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <button class="btn btn-primary" onclick="checkin()">Check in</button>
+            <button class="btn" onclick="checkout()">Check out</button>
+          </div>
+          <div id="checkin-status" style="font-size:12px;color:var(--text-secondary);"></div>
+        </div>
+        <div class="card">
+          <div class="section-title">Campus Problem Reporter</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" id="ticket-input" placeholder="Describe the issue (e.g. Projector not working in Room 204)" style="flex:1;" />
+            <button class="btn btn-primary" onclick="submitTicket()">Submit</button>
+          </div>
+          <div class="section-title">Active tickets</div>
+          <div id="ticket-list">
+            <div class="ticket"><div class="ticket-header"><span class="ticket-id">#TK-001</span><span class="ticket-title">WiFi down in Lab Block</span><span class="badge badge-high">Open</span></div><div class="ticket-meta">Reported 2 hrs ago · IT Team assigned</div></div>
+            <div class="ticket"><div class="ticket-header"><span class="ticket-id">#TK-002</span><span class="ticket-title">AC not working in Room 301</span><span class="badge badge-med">In Progress</span></div><div class="ticket-meta">Reported yesterday · Maintenance en route</div></div>
+            <div class="ticket"><div class="ticket-header"><span class="ticket-id">#TK-003</span><span class="ticket-title">Water cooler refill needed</span><span class="badge badge-low">Resolved</span></div><div class="ticket-meta">Resolved 1 hr ago</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======== ADMIN ANALYTICS ======== -->
+    <div class="page" id="page-admin">
+      <div class="page-header">
+        <div class="page-title">Admin Analytics Dashboard</div>
+        <div class="page-sub">Institution-wide overview for the Principal / Chairperson.</div>
+      </div>
+      <div class="role-bar">
+        <button class="role-btn active" id="role-btn-student" onclick="setAdminView('student',this)">👤 Student View</button>
+        <button class="role-btn" id="role-btn-faculty" onclick="setAdminView('faculty',this)">👩‍🏫 Faculty View</button>
+        <button class="role-btn" id="role-btn-admin" onclick="setAdminView('admin',this)">🏛 Admin View</button>
+      </div>
+
+      <!-- Student overview -->
+      <div id="admin-student-view">
+        <div class="grid-4 mb-1">
+          <div class="metric-card"><div class="metric-label">Total students</div><div class="metric-value">1,240</div></div>
+          <div class="metric-card"><div class="metric-label">Avg attendance</div><div class="metric-value" style="color:var(--teal)">83%</div></div>
+          <div class="metric-card"><div class="metric-label">AI sessions today</div><div class="metric-value" style="color:var(--blue)">342</div></div>
+          <div class="metric-card"><div class="metric-label">High stress alerts</div><div class="metric-value" style="color:var(--red)">47</div></div>
+        </div>
+        <div class="grid-2 mb-1">
+          <div class="card">
+            <div class="section-title mb-12">Attendance trends — this month</div>
+            <div style="position:relative;width:100%;height:200px;"><canvas id="attChart" role="img" aria-label="Attendance chart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="section-title">Top weak concepts campus-wide</div>
+            <div class="concept-row"><div class="concept-name">OS Process Scheduling</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-red" style="width:38%"></div></div></div><div class="concept-score" style="color:var(--red)">38%</div></div>
+            <div class="concept-row"><div class="concept-name">DBMS Normalization</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-red" style="width:44%"></div></div></div><div class="concept-score" style="color:var(--red)">44%</div></div>
+            <div class="concept-row"><div class="concept-name">Math Integration</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:51%"></div></div></div><div class="concept-score" style="color:var(--amber)">51%</div></div>
+            <div class="concept-row"><div class="concept-name">Physics Electrostatics</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:58%"></div></div></div><div class="concept-score" style="color:var(--amber)">58%</div></div>
+            <div class="concept-row"><div class="concept-name">English Report Writing</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:66%"></div></div></div><div class="concept-score" style="color:var(--teal)">66%</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">At-risk students requiring intervention</div>
+          <div class="teacher-row"><div class="avatar av-purple">AK</div><div class="teacher-info"><div class="teacher-name">Ananya Krishnan — Sec B</div><div class="teacher-sub">Stress: High · DBMS: 42% · OS: 55%</div></div><span class="badge badge-high">Immediate</span></div>
+          <div class="teacher-row"><div class="avatar av-amber">RV</div><div class="teacher-info"><div class="teacher-name">Rahul Verma — Sec A</div><div class="teacher-sub">Stress: Medium · DBMS: 58% · Maths: 61%</div></div><span class="badge badge-med">Monitor</span></div>
+          <div class="teacher-row"><div class="avatar av-teal">SM</div><div class="teacher-info"><div class="teacher-name">Sara Mehta — Sec C</div><div class="teacher-sub">Stress: Low · All subjects 72%+</div></div><span class="badge badge-low">Stable</span></div>
+        </div>
+      </div>
+
+      <!-- Faculty overview -->
+      <div id="admin-faculty-view" style="display:none;">
+        <div class="grid-4 mb-1">
+          <div class="metric-card"><div class="metric-label">Total faculty</div><div class="metric-value">48</div></div>
+          <div class="metric-card"><div class="metric-label">Materials uploaded</div><div class="metric-value" style="color:var(--purple)">186</div></div>
+          <div class="metric-card"><div class="metric-label">Doubt sessions</div><div class="metric-value" style="color:var(--teal)">24</div></div>
+          <div class="metric-card"><div class="metric-label">Avg availability</div><div class="metric-value" style="color:var(--green)">76%</div></div>
+        </div>
+        <div class="card mb-1">
+          <div class="section-title">Faculty performance summary</div>
+          <div class="concept-row"><div class="concept-name">Ms. Sharma — DBMS</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:88%"></div></div></div><div class="concept-score" style="color:var(--teal)">88%</div></div>
+          <div class="concept-row"><div class="concept-name">Dr. Rajan — OS</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-amber" style="width:71%"></div></div></div><div class="concept-score" style="color:var(--amber)">71%</div></div>
+          <div class="concept-row"><div class="concept-name">Mr. Verma — Maths</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-teal" style="width:82%"></div></div></div><div class="concept-score" style="color:var(--teal)">82%</div></div>
+          <div class="concept-row"><div class="concept-name">Ms. Priya — Physics</div><div class="concept-bar-wrap"><div class="progress-bar"><div class="progress-fill fill-purple" style="width:79%"></div></div></div><div class="concept-score" style="color:var(--purple-light)">79%</div></div>
+        </div>
+      </div>
+
+      <!-- Admin metrics -->
+      <div id="admin-admin-view" style="display:none;">
+        <div class="grid-4 mb-1">
+          <div class="metric-card"><div class="metric-label">Campus utilization</div><div class="metric-value">78%</div></div>
+          <div class="metric-card"><div class="metric-label">Open tickets</div><div class="metric-value" style="color:var(--amber)">12</div></div>
+          <div class="metric-card"><div class="metric-label">AI cost/student</div><div class="metric-value" style="color:var(--purple-light)">₹8.4</div></div>
+          <div class="metric-card"><div class="metric-label">System uptime</div><div class="metric-value" style="color:var(--green)">99.8%</div></div>
+        </div>
+        <div class="grid-2 mb-1">
+          <div class="card">
+            <div class="section-title mb-12">AI usage trends</div>
+            <div style="position:relative;width:100%;height:200px;"><canvas id="aiChart" role="img" aria-label="AI usage chart"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="section-title">System health</div>
+            <div class="stress-row"><div class="dot dot-green"></div><div class="stress-text">AI Bot Service</div><div class="stress-tag">Operational</div></div>
+            <div class="stress-row"><div class="dot dot-green"></div><div class="stress-text">Student Portal</div><div class="stress-tag">Operational</div></div>
+            <div class="stress-row"><div class="dot dot-amber"></div><div class="stress-text">Video Upload Service</div><div class="stress-tag">Degraded</div></div>
+            <div class="stress-row"><div class="dot dot-green"></div><div class="stress-text">Campus GPS Module</div><div class="stress-tag">Operational</div></div>
+            <div class="stress-row"><div class="dot dot-green"></div><div class="stress-text">Analytics Engine</div><div class="stress-tag">Operational</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ======== AI CHATBOT FAB ======== -->
+<button class="chat-fab" id="chat-fab" onclick="toggleChat()">🤖</button>
+<div class="chat-window" id="chat-window">
+  <div class="chat-header">
+    <div class="chat-av">🤖</div>
+    <div>
+      <div class="chat-name">LearnAI Assistant</div>
+      <div class="chat-status" id="bot-status">● Online · Ready to help</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="msg bot">
+      <div class="msg-bubble">Hi Ananya! 👋 I'm your AI learning assistant. Ask me anything — concepts, doubts, study tips, or explanations!</div>
+      <div class="msg-time">Just now</div>
+    </div>
+  </div>
+  <div class="chat-voice-bar">
+    <button class="voice-btn" id="voice-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
+    <span class="voice-status" id="voice-status">Tap mic to speak</span>
+    <button class="voice-btn" id="tts-btn" onclick="toggleTTS()" title="Text-to-speech" style="font-size:13px;">🔊</button>
+  </div>
+  <div class="chat-input-wrap">
+    <textarea class="chat-input" id="chat-input" placeholder="Ask a question..." rows="1" onkeydown="chatKeydown(event)"></textarea>
+    <button class="chat-send" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+</div><!-- end app -->
+
+<script>
+// ============================================================
+// AUTH / LOGIN SYSTEM
+// ============================================================
+const USERS = {
+  'student@campus.edu': { pass: 'student123', role: 'student', name: 'Ananya Krishnan', av: 'AK' },
+  'faculty@campus.edu': { pass: 'faculty123', role: 'faculty', name: 'Ms. Sharma', av: 'MS' },
+  'admin@campus.edu':   { pass: 'admin123',   role: 'admin',   name: 'Admin',        av: 'AD' },
+};
+
+let currentUser = null;
+let loginRole = 'student';
+
+function setLoginRole(role, el) {
+  loginRole = role;
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  const err   = document.getElementById('login-err');
+  const u = USERS[email];
+  if (!u || u.pass !== pass) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  currentUser = { ...u, email };
+  startApp();
+}
+
+function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // Set sidebar user info
+  document.getElementById('sidebar-av').textContent   = currentUser.av;
+  document.getElementById('sidebar-name').textContent = currentUser.name;
+  document.getElementById('sidebar-role').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+  // Show correct nav
+  ['student','faculty','admin'].forEach(r => {
+    document.getElementById('nav-' + r).style.display = currentUser.role === r ? 'block' : 'none';
+  });
+  // Set initial page
+  const firstPage = { student: 'dashboard', faculty: 'faculty-dash', admin: 'admin' }[currentUser.role];
+  navTo(firstPage, true);
+  // Update chat greeting
+  const greetNames = { student: 'Ananya', faculty: 'Ms. Sharma', admin: 'Admin' };
+  document.querySelector('.chat-window .msg-bubble').textContent =
+    `Hi ${greetNames[currentUser.role]}! 👋 I'm your AI learning assistant. Ask me anything — concepts, doubts, study tips, or explanations!`;
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+  // Clear chat
+  const msgs = document.getElementById('chat-msgs');
+  msgs.innerHTML = '<div class="msg bot"><div class="msg-bubble">Hi! 👋 I\'m your AI learning assistant.</div><div class="msg-time">Just now</div></div>';
+}
+
+// Enter key for login
+document.addEventListener('keydown', function(e) {
+  if (document.getElementById('login-screen').style.display !== 'none' && e.key === 'Enter') doLogin();
+});
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function nav(id) { navTo(id, false); }
+
+function navTo(id, initial) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+  // Activate matching nav item
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes("'" + id + "'")) n.classList.add('active');
+  });
+  if (id === 'admin') setTimeout(drawAdminCharts, 150);
+}
+
+// ============================================================
+// REAL WORLD AI EXPLANATIONS
+// ============================================================
+const rwData = {
+  deadlock:    { sub:'Operating Systems', title:'Deadlocks', body:'Imagine 4 cars at a 4-way stop, each waiting for the car on its right to move first — nobody moves. OS deadlocks are the same: processes each hold a resource and wait on one another in an endless cycle.' },
+  sql:         { sub:'DBMS', title:'SQL Queries', body:'Think of SQL as talking to a librarian. "SELECT books WHERE author=\'Tolkien\'" means show me every book by Tolkien. The database is the shelf; SQL is your instruction to the librarian.' },
+  inertia:     { sub:'Physics', title:'Inertia', body:'A ball rolling on a smooth floor keeps rolling — it has no reason to stop until friction or your foot applies a force. Inertia is an object\'s resistance to changes in its state of motion.' },
+  paging:      { sub:'OS', title:'Memory Paging', body:'A restaurant seats a party of 8 across two 4-person tables when no large table is free. Paging splits large program data into fixed-size pages placed across available memory frames.' },
+  normalization:{ sub:'DBMS', title:'Database Normalization', body:'Imagine a school notebook with student name, grade, and teacher written on every page. Normalization separates these into student table, grade table, and teacher table — so changing a teacher name updates in one place, not hundreds.' },
+  recursion:   { sub:'Programming', title:'Recursion', body:'Russian nesting dolls — you open one to find a smaller one inside, and again, until you hit the tiniest doll. Recursion calls itself with a smaller problem until it hits the simplest case (base case) and stops.' },
+  encryption:  { sub:'Security', title:'Encryption', body:'Think of a locked diary. The key encodes your message into scrambled text — only someone with the matching key can decode it. AES and RSA are just very sophisticated locks.' },
+};
+
+async function generateRW() {
+  const val = document.getElementById('rw-input').value.trim();
+  if (!val) return;
+  const result = document.getElementById('rw-result');
+  const body = document.getElementById('rw-body');
+  result.style.display = 'block';
+  document.getElementById('rw-sub').textContent = 'AI Explanation';
+  document.getElementById('rw-title').textContent = val;
+  body.textContent = '⏳ Generating explanation...';
+
+  const key = Object.keys(rwData).find(k => val.toLowerCase().includes(k));
+  if (key) {
+    const d = rwData[key];
+    document.getElementById('rw-sub').textContent = d.sub;
+    document.getElementById('rw-title').textContent = d.title;
+    body.textContent = d.body;
+    return;
+  }
+  // Call Anthropic API
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 200,
+        messages: [{ role:'user', content: `Explain "${val}" using a simple real-world analogy in 2-3 sentences. Be concrete and vivid. No jargon.` }]
+      })
+    });
+    const data = await res.json();
+    if (data.content && data.content[0]) {
+      document.getElementById('rw-sub').textContent = 'AI Generated';
+      body.textContent = data.content[0].text;
+    } else {
+      body.textContent = 'Think of it as a system where specific inputs always produce predictable outputs — the same logic you encounter in everyday life governs both the theory and real-world applications.';
+    }
+  } catch(e) {
+    body.textContent = 'Think of "' + val + '" as a process where components work together in a structured way — breaking the problem into smaller, logical steps just like you solve everyday challenges.';
+  }
+}
+
+// ============================================================
+// QUIZ (FIXED & WORKING)
+// ============================================================
+let qIdx = 1, qScore = 0, qAnswered = false;
+
+function selectOpt(el, correct, q) {
+  if (qAnswered) return;
+  qAnswered = true;
+  // Disable all options in this question
+  const qEl = document.getElementById('quiz-q-' + q);
+  qEl.querySelectorAll('.quiz-opt').forEach(o => {
+    o.classList.add('disabled');
+    o.style.pointerEvents = 'none';
+  });
+  if (correct) {
+    qScore++;
+    el.classList.add('correct');
+  } else {
+    el.classList.add('wrong');
+    // Highlight correct answer
+    qEl.querySelectorAll('.quiz-opt').forEach(o => {
+      if (o.getAttribute('onclick') && o.getAttribute('onclick').includes('true')) o.classList.add('correct');
+    });
+  }
+  const fb = document.getElementById('quiz-fb');
+  fb.className = 'feedback-box ' + (correct ? 'fb-correct' : 'fb-wrong');
+  fb.textContent = correct ? '✓ Correct! Well done.' : '✗ Not quite — the correct answer is highlighted in teal.';
+  fb.style.display = 'block';
+  document.getElementById('quiz-score-label').textContent = 'Score: ' + qScore + ' / ' + qIdx;
+  if (qIdx < 5) {
+    document.getElementById('quiz-next').style.display = 'inline-flex';
+  } else {
+    setTimeout(showQuizDone, 800);
+  }
+}
+
+function nextQ() {
+  document.getElementById('quiz-q-' + qIdx).style.display = 'none';
+  qIdx++;
+  document.getElementById('quiz-q-' + qIdx).style.display = 'block';
+  document.getElementById('q-counter').textContent = 'Question ' + qIdx + ' of 5';
+  document.getElementById('quiz-progress').style.width = (qIdx * 20) + '%';
+  document.getElementById('quiz-fb').style.display = 'none';
+  document.getElementById('quiz-next').style.display = 'none';
+  document.getElementById('quiz-score-label').textContent = '';
+  qAnswered = false;
+}
+
+function showQuizDone() {
+  document.getElementById('quiz-next').style.display = 'none';
+  document.getElementById('quiz-done').style.display = 'block';
+  const pct = Math.round((qScore / 5) * 100);
+  const emoji = pct >= 80 ? '🏆' : pct >= 60 ? '👍' : '📚';
+  document.getElementById('quiz-final').textContent =
+    emoji + ' You scored ' + qScore + '/5 (' + pct + '%). ' +
+    (pct >= 80 ? 'Excellent! You\'ve mastered this topic.' : pct >= 60 ? 'Good progress! A bit more practice and you\'ll nail it.' : 'Keep practicing — check the real-world converter for help.');
+  document.getElementById('quiz-progress').style.width = '100%';
+}
+
+function restartQuiz() {
+  qIdx = 1; qScore = 0; qAnswered = false;
+  for (let i = 1; i <= 5; i++) {
+    const q = document.getElementById('quiz-q-' + i);
+    q.style.display = i === 1 ? 'block' : 'none';
+    q.querySelectorAll('.quiz-opt').forEach(o => {
+      o.className = 'quiz-opt';
+      o.style.pointerEvents = '';
+    });
+  }
+  document.getElementById('quiz-fb').style.display = 'none';
+  document.getElementById('quiz-next').style.display = 'none';
+  document.getElementById('quiz-done').style.display = 'none';
+  document.getElementById('quiz-score-label').textContent = '';
+  document.getElementById('q-counter').textContent = 'Question 1 of 5';
+  document.getElementById('quiz-progress').style.width = '20%';
+}
+
+// ============================================================
+// MATERIALS
+// ============================================================
+let uploadCount = 0;
+const fakeFiles = ['Chapter 5 summary.pdf','My OS notes.txt','Quadratic practice set.pdf','Physics formulas.png'];
+function fakeUpload() {
+  const name = fakeFiles[uploadCount % fakeFiles.length]; uploadCount++;
+  const el = document.createElement('div');
+  el.className = 'material-row';
+  el.innerHTML = '<div class="mat-icon mat-note">📝</div><div style="flex:1"><div class="mat-name">'+name+'</div><div class="mat-meta">You · Just uploaded</div></div>';
+  document.getElementById('upload-list').appendChild(el);
+}
+
+// ============================================================
+// TEACHER BOOKING
+// ============================================================
+function bookSlot(name, time) {
+  alert('✓ Doubt session booked with ' + name + ' at ' + time + '.\nYou\'ll receive a reminder 30 minutes before.');
+}
+
+// ============================================================
+// CAMPUS CHECK-IN
+// ============================================================
+function checkin()  { document.getElementById('checkin-status').textContent = '✓ Checked in at Lab Block — ' + new Date().toLocaleTimeString(); }
+function checkout() { document.getElementById('checkin-status').textContent = '✓ Checked out — ' + new Date().toLocaleTimeString(); }
+
+// ============================================================
+// TICKETS
+// ============================================================
+let tkCount = 4;
+function submitTicket() {
+  const t = document.getElementById('ticket-input').value.trim();
+  if (!t) return;
+  const div = document.createElement('div');
+  div.className = 'ticket';
+  div.innerHTML = '<div class="ticket-header"><span class="ticket-id">#TK-00'+tkCount+'</span><span class="ticket-title">'+t+'</span><span class="badge badge-high">Open</span></div><div class="ticket-meta">Reported just now · Awaiting assignment</div>';
+  document.getElementById('ticket-list').prepend(div);
+  document.getElementById('ticket-input').value = '';
+  tkCount++;
+}
+
+// ============================================================
+// TIMETABLE
+// ============================================================
+function genTimetable() {
+  const el = document.getElementById('tt-output');
+  el.style.opacity = '0.4';
+  el.style.transition = 'opacity 0.3s';
+  setTimeout(() => { el.style.opacity = '1'; }, 500);
+}
+
+// ============================================================
+// ADMIN ANALYTICS
+// ============================================================
+let attChart, aiChart;
+
+function setAdminView(view, btn) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-student-view').style.display = view === 'student' ? 'block' : 'none';
+  document.getElementById('admin-faculty-view').style.display = view === 'faculty' ? 'block' : 'none';
+  document.getElementById('admin-admin-view').style.display = view === 'admin' ? 'block' : 'none';
+  setTimeout(() => drawAdminCharts(), 80);
+}
+
+function drawAdminCharts() {
+  drawAttChart();
+  drawAIChart();
+}
+
+function drawAttChart() {
+  const canvas = document.getElementById('attChart');
+  if (!canvas || !window.Chart) return;
+  if (attChart) { attChart.destroy(); attChart = null; }
+  attChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: ['Week 1','Week 2','Week 3','Week 4'],
+      datasets: [{
+        label: 'Attendance %',
+        data: [82, 78, 85, 88],
+        backgroundColor: 'rgba(168,85,247,0.6)',
+        borderColor: 'rgba(168,85,247,1)',
+        borderRadius: 6,
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 60, max: 100, ticks: { callback: v => v+'%', color: '#9b85c4', font:{size:11} }, grid: { color: 'rgba(139,100,220,0.12)' } },
+        x: { ticks: { color: '#9b85c4', font:{size:11} }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function drawAIChart() {
+  const canvas = document.getElementById('aiChart');
+  if (!canvas || !window.Chart) return;
+  if (aiChart) { aiChart.destroy(); aiChart = null; }
+  aiChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: ['Mon','Tue','Wed','Thu','Fri','Sat'],
+      datasets: [{
+        label: 'AI Sessions',
+        data: [210, 285, 320, 295, 342, 180],
+        borderColor: 'rgba(168,85,247,1)',
+        backgroundColor: 'rgba(168,85,247,0.1)',
+        fill: true, tension: 0.4, pointBackgroundColor: 'rgba(168,85,247,1)', pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { color: '#9b85c4', font:{size:11} }, grid: { color:'rgba(139,100,220,0.12)' } },
+        x: { ticks: { color: '#9b85c4', font:{size:11} }, grid: { display:false } }
+      }
+    }
+  });
+}
+
+// ============================================================
+// AI CHATBOT
+// ============================================================
+let chatOpen = false;
+let ttsEnabled = true;
+let isRecording = false;
+let recognition = null;
+let conversationHistory = [];
+
+const BOT_SYSTEM = `You are LearnAI, a helpful AI assistant for a campus learning management system. You help students understand academic concepts, explain topics using real-world analogies, suggest study strategies, and answer questions about DBMS, Operating Systems, Mathematics, Physics, and English. Keep responses concise (2-4 sentences), friendly, and educational. Use simple language and relatable examples.`;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  const win = document.getElementById('chat-window');
+  const fab = document.getElementById('chat-fab');
+  if (chatOpen) {
+    win.classList.add('open');
+    fab.textContent = '✕';
+    fab.classList.add('open');
+    document.getElementById('chat-input').focus();
+  } else {
+    win.classList.remove('open');
+    fab.textContent = '🤖';
+    fab.classList.remove('open');
+  }
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+function nowTime() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+
+function appendMsg(role, text) {
+  const msgs = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-bubble">${text}</div><div class="msg-time">${nowTime()}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typing-indicator';
+  div.innerHTML = '<div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  appendMsg('user', text);
+  conversationHistory.push({ role: 'user', content: text });
+  showTyping();
+  document.getElementById('bot-status').textContent = '● Thinking...';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: BOT_SYSTEM,
+        messages: conversationHistory
+      })
+    });
+    const data = await res.json();
+    removeTyping();
+    const reply = data.content && data.content[0] ? data.content[0].text : 'Sorry, I couldn\'t process that. Please try again!';
+    conversationHistory.push({ role: 'assistant', content: reply });
+    appendMsg('bot', reply);
+    document.getElementById('bot-status').textContent = '● Online · Ready to help';
+    if (ttsEnabled) speakText(reply);
+  } catch(e) {
+    removeTyping();
+    const fallback = getFallbackResponse(text);
+    appendMsg('bot', fallback);
+    document.getElementById('bot-status').textContent = '● Online · Ready to help';
+  }
+}
+
+function getFallbackResponse(text) {
+  const t = text.toLowerCase();
+  if (t.includes('normalization') || t.includes('normal form')) return 'Normalization organizes database tables to reduce redundancy. Think of it like a well-organized filing system — each piece of information is stored exactly once!';
+  if (t.includes('deadlock')) return 'A deadlock is like a traffic gridlock — each process holds a resource and waits for another, creating a circular dependency where nobody moves.';
+  if (t.includes('stress') || t.includes('worried')) return 'I understand exams can be stressful! 💪 Break your study into small 25-min sessions, tackle your weakest topics first, and use the Skill Gap Detector for targeted practice.';
+  if (t.includes('quiz')) return 'Head to the Smart Quiz section — it\'s designed to target your weakest concepts first so you improve faster!';
+  if (t.includes('hello') || t.includes('hi')) return 'Hi there! 👋 I\'m ready to help you learn. Ask me about any concept, and I\'ll explain it with a real-world analogy!';
+  return 'Great question! The key to mastering this concept is connecting it to something you already know. Try the Real-World Converter for an analogy, or ask me to break it down step by step!';
+}
+
+// ============================================================
+// VOICE INPUT
+// ============================================================
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Voice input is not supported in this browser. Try Chrome or Edge.');
+    return;
+  }
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+function startRecording() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('voice-btn').classList.add('recording');
+    document.getElementById('voice-btn').textContent = '⏹';
+    document.getElementById('voice-status').textContent = 'Listening...';
+    document.getElementById('voice-status').classList.add('active');
+  };
+
+  recognition.onresult = (e) => {
+    let transcript = '';
+    for (let r of e.results) transcript += r[0].transcript;
+    document.getElementById('chat-input').value = transcript;
+    if (e.results[0].isFinal) {
+      document.getElementById('voice-status').textContent = '✓ Got it!';
+      setTimeout(() => { document.getElementById('voice-status').textContent = 'Tap mic to speak'; }, 1500);
+    }
+  };
+
+  recognition.onend = () => { stopRecording(); };
+  recognition.onerror = (e) => {
+    document.getElementById('voice-status').textContent = 'Error: ' + e.error;
+    stopRecording();
+  };
+
+  recognition.start();
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+  document.getElementById('voice-btn').classList.remove('recording');
+  document.getElementById('voice-btn').textContent = '🎤';
+  document.getElementById('voice-status').classList.remove('active');
+  document.getElementById('voice-status').textContent = 'Tap mic to speak';
+}
+
+// ============================================================
+// TEXT-TO-SPEECH
+// ============================================================
+function toggleTTS() {
+  ttsEnabled = !ttsEnabled;
+  document.getElementById('tts-btn').textContent = ttsEnabled ? '🔊' : '🔇';
+  document.getElementById('tts-btn').title = ttsEnabled ? 'Text-to-speech ON' : 'Text-to-speech OFF';
+  if (!ttsEnabled) window.speechSynthesis && window.speechSynthesis.cancel();
+}
+
+function speakText(text) {
+  if (!ttsEnabled || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/[#*`]/g,'').replace(/\n+/g,' ');
+  const utt = new SpeechSynthesisUtterance(clean.substring(0, 300));
+  utt.lang = 'en-IN';
+  utt.rate = 1.0;
+  utt.pitch = 1.0;
+  window.speechSynthesis.speak(utt);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+// Trigger login on Enter for password field
+document.addEventListener('DOMContentLoaded', () => {
+  const passField = document.getElementById('login-pass');
+  if (passField) passField.addEventListener('keydown', (e) => { if(e.key==='Enter') doLogin(); });
+});
+</script>
+</body>
+</html>
